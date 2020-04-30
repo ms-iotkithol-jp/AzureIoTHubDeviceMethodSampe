@@ -1,8 +1,12 @@
 method-invocation-spec:
   test-loop-count: 10
   invocation-interval: 5000
+  # Specify test device set
+  # 'device-id' specify list of test device by DeviceId
   device-id:
     - test-device-method-1
+  # 'device-type' specify test devices by marked in reported property
+  # device-type: method-invocation-test-device
   device-method-name: TestMethod
   data-size-of-payload: 1000
   sleep-msec-in-method: 1000
