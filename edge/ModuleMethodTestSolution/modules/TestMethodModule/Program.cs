@@ -65,7 +65,7 @@ namespace TestMethodModule
             var twin = await ioTHubModuleClient.GetTwinAsync();
             
             var reportedProps = new ReportedProperty(){
-                DeviceType = "testdevice-device-method"
+                DeviceType = "method-invocation-test-device"
             };
             var reportedPropTwin = new TwinCollection(Newtonsoft.Json.JsonConvert.SerializeObject(reportedProps));
             await ioTHubModuleClient.UpdateReportedPropertiesAsync(reportedPropTwin);
@@ -81,9 +81,12 @@ namespace TestMethodModule
         static void UpdateDesiredTwinPropery(string json)
         {
             dynamic twinPropsJson = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
-            var deviceMethodTestProps = twinPropsJson["device-method-test"] as Newtonsoft.Json.Linq.JObject;
-            SleepTimeInMethod = (int)deviceMethodTestProps.GetValue("sleep-time");
-            ResponseDataLength = (int)deviceMethodTestProps.GetValue("response-data-length");
+            var deviceMethodTestProps = twinPropsJson["direct-method-test"] as Newtonsoft.Json.Linq.JObject;
+            if (!(deviceMethodTestProps is null))
+            {
+                SleepTimeInMethod = (int)deviceMethodTestProps.GetValue("sleep-time");
+                ResponseDataLength = (int)deviceMethodTestProps.GetValue("response-data-length");
+            }
         }
 
         static async Task DesiredPropertyUpdateHandler(TwinCollection desiredProperties, object userContext)

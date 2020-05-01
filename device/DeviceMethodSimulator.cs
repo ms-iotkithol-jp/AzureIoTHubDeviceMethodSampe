@@ -45,7 +45,7 @@ namespace egeorge.iot.devicemethod
         {
             var twin = await iotHubClinet.GetTwinAsync();
             var reportedProps = new ReportedProperty(){
-                DeviceType = "testdevice-device-method"
+                DeviceType = "method-invocation-test-device"
             };
             var reportedPropTwin = new TwinCollection(Newtonsoft.Json.JsonConvert.SerializeObject(reportedProps));
             await iotHubClinet.UpdateReportedPropertiesAsync(reportedPropTwin);
@@ -65,9 +65,12 @@ namespace egeorge.iot.devicemethod
         void UpdateDesiredTwinPropery(string json)
         {
             dynamic twinPropsJson = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
-            var deviceMethodTestProps = twinPropsJson["device-method-test"] as Newtonsoft.Json.Linq.JObject;
-            SleepTimeInMethod = (int)deviceMethodTestProps.GetValue("sleep-time");
-            ResponseDataLength = (int)deviceMethodTestProps.GetValue("response-data-length");
+            var deviceMethodTestProps = twinPropsJson["direct-method-test"] as Newtonsoft.Json.Linq.JObject;
+            if (!(deviceMethodTestProps is null))
+            {
+                SleepTimeInMethod = (int)deviceMethodTestProps.GetValue("sleep-time");
+                ResponseDataLength = (int)deviceMethodTestProps.GetValue("response-data-length");
+            }
         }
 
         private int? SleepTimeInMethod { get; set; }

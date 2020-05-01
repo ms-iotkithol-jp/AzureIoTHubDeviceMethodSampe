@@ -80,6 +80,10 @@ namespace egeorge.iot.devicemethod
 
             var spec = new DeviceMethodInvocationSpec();
             var deviceids = ParseConfig(ref spec);
+            if (deviceids == null)
+            {
+                deviceids = new List<string>();
+            }
             string query = null;
             if (deviceids.Count>0)
             {
@@ -103,24 +107,44 @@ namespace egeorge.iot.devicemethod
             }
             if (!string.IsNullOrEmpty(query))
             {
-                var jobId = await StartDesiredTwinsJob(query, spec);
-                await MonitorJob(jobId);
-                await jobClient.CloseAsync();
-
-                if (deviceids.Count==0)
+                if (string.IsNullOrEmpty(spec.ModuleId))
+                {
+                    var jobId = await StartDesiredTwinsJob(query, spec);
+                    await MonitorJob(jobId);
+                    await jobClient.CloseAsync();
+                }
+                
+                if (deviceids.Count==0 || !(string.IsNullOrEmpty(spec.ModuleId)))
                 {
                     var registryManager = RegistryManager.CreateFromConnectionString(iotHubConnectionString);
                     await registryManager.OpenAsync();
-                    var deviceQuery = registryManager.CreateQuery($"SELECT * FROM devices WHERE {query}");
-                    deviceids = new List<string>();
-                    while(deviceQuery.HasMoreResults)
+
+                    if (deviceids.Count == 0)
                     {
-                        var twins = await deviceQuery.GetNextAsTwinAsync();
-                        foreach (var twin in twins)
+                        var deviceQuery = registryManager.CreateQuery($"SELECT * FROM devices WHERE {query}");
+                        // deviceids = new List<string>();
+                        while(deviceQuery.HasMoreResults)
                         {
-                            deviceids.Add(twin.DeviceId);
+                            var twins = await deviceQuery.GetNextAsTwinAsync();
+                            foreach (var twin in twins)
+                            {
+                                deviceids.Add(twin.DeviceId);
+                            }
                         }
                     }
+
+                    if (!string.IsNullOrEmpty(spec.ModuleId))
+                    {
+                        foreach (var devId in deviceids)
+                        {
+                            var twin = await registryManager.GetTwinAsync(devId,spec.ModuleId);
+                            var twinDP = CreateTestMethodSpecDesiredPropertyJson(spec);
+                            twin.Properties.Desired = new TwinCollection(twinDP);
+                            await registryManager.UpdateTwinAsync(devId,spec.ModuleId, twin, twin.ETag);
+                        }
+                    }
+
+                    await registryManager.CloseAsync();
                 }
             }
 
@@ -169,14 +193,10 @@ namespace egeorge.iot.devicemethod
             jobClient = JobClient.CreateFromConnectionString(iotHubConnectionString);
             await jobClient.OpenAsync();
 
-            var desiredTwinJson = new DeviceTwinDesiredProperty()
-            {
-                SleepTime = spec.MSecOfWaitTimeInDeviceMethod,
-                ReponseDataLength = spec.SizeOfResponseData
-            };
             var twin = new Twin();
-            var json = "{\"device-method-test\":" +  Newtonsoft.Json.JsonConvert.SerializeObject(desiredTwinJson) + "}";
-            twin.Properties.Desired = new TwinCollection(json);
+            var dpJson = CreateTestMethodSpecDesiredPropertyJson(spec);
+            twin.Properties.Desired = new TwinCollection(dpJson);
+
             await jobClient.OpenAsync();
 
             var jobResponse = jobClient.ScheduleTwinUpdateAsync(
@@ -187,6 +207,17 @@ namespace egeorge.iot.devicemethod
                 (long)TimeSpan.FromMinutes(2).TotalSeconds
                 ).Result;
             return jobId;
+        }
+
+        private string CreateTestMethodSpecDesiredPropertyJson(DeviceMethodInvocationSpec spec)
+        {
+            var desiredTwinJson = new DeviceTwinDesiredProperty()
+            {
+                SleepTime = spec.MSecOfWaitTimeInDeviceMethod,
+                ReponseDataLength = spec.SizeOfResponseData
+            };
+            var json = "{\"direct-method-test\":" + Newtonsoft.Json.JsonConvert.SerializeObject(desiredTwinJson) + "}";
+            return json;
         }
 
         public async Task MonitorJob(string jobId)
