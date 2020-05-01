@@ -9,13 +9,13 @@ Azure IoT Hub の Direct Method 利用のサンプルコードとパフォーマ
 - 同時に複数の Invocation 
 ---
 ## 構成 
-- service  
+- [service](#service)  
 サービス側で、Direct Method を Invoke し、時間を計測するツール 
-- device  
+- [device](#device)  
 Direct Method を実行するデバイス（Azure IoT Device SDK 使用する小型デバイス向け）のエミュレータ
-- edge  
+- [edge](#edge)  
 Direct Method を実行する IoT Edge Module 版エミュレータ 
-- utility  
+- [utility](#utility)  
 Direct Method 機能を利用した、ちょっといけてるサンプル群
 
 
