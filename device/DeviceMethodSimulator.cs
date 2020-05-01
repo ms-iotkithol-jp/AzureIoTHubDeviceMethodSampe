@@ -50,11 +50,7 @@ namespace egeorge.iot.devicemethod
             var reportedPropTwin = new TwinCollection(Newtonsoft.Json.JsonConvert.SerializeObject(reportedProps));
             await iotHubClinet.UpdateReportedPropertiesAsync(reportedPropTwin);
             string desiredProps = twin.Properties.Desired.ToJson();
-            dynamic twinPropsJson = Newtonsoft.Json.JsonConvert.DeserializeObject(desiredProps);
-            dynamic dpstv = twinPropsJson["sleep-time"].Value;
-            SleepTimeInMethod = (int)dpstv;
-            dynamic dprdlv = twinPropsJson["response-data-length"].Value;
-            ResponseDataLength = (int)dprdlv;
+            UpdateDesiredTwinPropery(desiredProps);
 
             await iotHubClinet.SetDesiredPropertyUpdateCallbackAsync(DesiredPropertyUpdateHandler, this);
         }
@@ -68,11 +64,10 @@ namespace egeorge.iot.devicemethod
 
         void UpdateDesiredTwinPropery(string json)
         {
-            dynamic desiredPropsJson = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
-            dynamic dpstv = desiredPropsJson["sleep-time"].Value;
-            SleepTimeInMethod = (int)dpstv;
-            dynamic dprdlv = desiredPropsJson["response-data-length"].Value;
-            ResponseDataLength = (int)dprdlv;
+            dynamic twinPropsJson = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
+            var deviceMethodTestProps = twinPropsJson["device-method-test"] as Newtonsoft.Json.Linq.JObject;
+            SleepTimeInMethod = (int)deviceMethodTestProps.GetValue("sleep-time");
+            ResponseDataLength = (int)deviceMethodTestProps.GetValue("response-data-length");
         }
 
         private int? SleepTimeInMethod { get; set; }

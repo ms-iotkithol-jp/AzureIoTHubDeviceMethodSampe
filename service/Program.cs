@@ -128,22 +128,23 @@ namespace egeorge.iot.devicemethod
             if (!string.IsNullOrEmpty(LogFileName))
             {
                 log = new FileLogWriter(LogFileName);
-                log.Open();
+                log.Open(true);
             }
             cancellationTokenSource = new CancellationTokenSource();
             var tasks = new List<Task>();
             var incovators = new List<DeviceMethodInvocator>();
             foreach (var deviceId in deviceids)
             {
-                var invocator = new DeviceMethodInvocator(iotHubConnectionString,transportType);
-                if (log !=null) {
+                var invocator = new DeviceMethodInvocator(iotHubConnectionString, transportType);
+                if (log !=null)
+                {
                     invocator.Log = log;
                 }
                 await invocator.Connect();
                 var task = Task.Run( async ()=> {
                      await invocator.TryDeviceMethodInvocation(deviceId, spec, cancellationTokenSource.Token);
                 });
-//                task.Start();
+          //      task.Start();
                 tasks.Add(task);
                 incovators.Add(invocator);
             }
@@ -174,7 +175,8 @@ namespace egeorge.iot.devicemethod
                 ReponseDataLength = spec.SizeOfResponseData
             };
             var twin = new Twin();
-            twin.Properties.Desired = new TwinCollection(Newtonsoft.Json.JsonConvert.SerializeObject(desiredTwinJson));
+            var json = "{\"device-method-test\":" +  Newtonsoft.Json.JsonConvert.SerializeObject(desiredTwinJson) + "}";
+            twin.Properties.Desired = new TwinCollection(json);
             await jobClient.OpenAsync();
 
             var jobResponse = jobClient.ScheduleTwinUpdateAsync(
@@ -221,7 +223,7 @@ namespace egeorge.iot.devicemethod
                 {
                     spec.TestDeviceType = invokeConfig["device-type"].Value;
                 }
-                spec.DeviceMethodName = invokeConfig["device-method-name"].Value;
+                spec.MethodName = invokeConfig["method-name"].Value;
                 string iiv = invokeConfig["invocation-interval"].Value;
                 spec.MSecOfInvocationInterval = int.Parse(iiv);
                 iiv = invokeConfig["sleep-msec-in-method"].Value;
@@ -232,6 +234,12 @@ namespace egeorge.iot.devicemethod
                 spec.SizeOfDataInPayload = int.Parse(iiv);
                 iiv = invokeConfig["data-size-of-response"].Value;
                 spec.SizeOfResponseData = int.Parse(iiv);
+                iiv = invokeConfig["response-timeout"].Value;
+                spec.ResponseTimeout = int.Parse(iiv);
+                if (!(invokeConfig["module-id"] is null))
+                {
+                    spec.ModuleId = invokeConfig["module-id"].Value;
+                }
             }
             return devices;
         }

@@ -53,7 +53,8 @@ namespace egeorge.iot.devicemethod
             var invokeDeltas = new List<double>();
             for (var i=0;i<spec.NumOfInvocationLoop;i++)
             {
-                CloudToDeviceMethod deviceMethod = new CloudToDeviceMethod(spec.DeviceMethodName);
+                CloudToDeviceMethod deviceMethod = new CloudToDeviceMethod(spec.MethodName);
+                deviceMethod.ResponseTimeout = TimeSpan.FromMilliseconds(spec.ResponseTimeout);
                 var payload = sb.ToString();
                 if (!string.IsNullOrEmpty(payload))
                 {
@@ -65,7 +66,14 @@ namespace egeorge.iot.devicemethod
                 bool succeeded = false;
                 var startTimestamp = DateTime.Now;
                 try {
-                    var resultOfInvocation =  await serviceClient.InvokeDeviceMethodAsync(deviceId, deviceMethod);
+                    CloudToDeviceMethodResult resultOfInvocation = null;
+                    if (!string.IsNullOrEmpty(spec.ModuleId))
+                    {
+                        resultOfInvocation = await serviceClient.InvokeDeviceMethodAsync(deviceId,spec.ModuleId, deviceMethod);
+                    }
+                    else{
+                        resultOfInvocation =  await serviceClient.InvokeDeviceMethodAsync(deviceId, deviceMethod);
+                    }
                     if (resultOfInvocation.Status == 200 )
                     {
                         dynamic resultJson = Newtonsoft.Json.JsonConvert.DeserializeObject(resultOfInvocation.GetPayloadAsJson());
@@ -81,6 +89,7 @@ namespace egeorge.iot.devicemethod
                 if (succeeded)
                 {
                     var delta = (float)(endTimeStamp.Subtract(startTimestamp).Ticks/10)/1000.0;
+                    delta -= spec.MSecOfWaitTimeInDeviceMethod;
                     Log.Write(string.Format("[{0}]start:{1}->end:{2} = {3}",i, startTimestamp.ToString("yyyy/MM/dd-HH:mm:ss.fff"), endTimeStamp.ToString("yyyy/MM/dd-HH:mm:ss.fff"), delta));
                     invokeDeltas.Add(delta);
                 }
@@ -92,6 +101,8 @@ namespace egeorge.iot.devicemethod
                 await Task.Delay(spec.MSecOfInvocationInterval);
             }
             Log.Write("Statistics");
+            Log.Write(string.Format("Condition - InvokePayloadSize={0},ResponseDataSize={1},SleepInMethod={2},InvokeInterval={3}",spec.SizeOfDataInPayload, spec.SizeOfResponseData, spec.MSecOfWaitTimeInDeviceMethod, spec.MSecOfInvocationInterval));
+            Log.Write(string.Format("Condition - transport={0}", iotHubTransportType.ToString()));
             Log.Write(string.Format("Total Incation Count - {0}", spec.NumOfInvocationLoop));
             Log.Write(string.Format("Succeeded Count - {0}", invokeDeltas.Count));
             Log.Write(string.Format("Mean:{0},Median:{1},PSD:{2}",invokeDeltas.Mean(), invokeDeltas.Median(), invokeDeltas.PopulationStandardDeviation()));
@@ -105,13 +116,16 @@ namespace egeorge.iot.devicemethod
     public class DeviceMethodInvocationSpec
     {
         public string TestDeviceType { get; set; }
-        public string DeviceMethodName { get; set; }
+        public string MethodName { get; set; }
         public int SizeOfDataInPayload { get; set; }
         public int MSecOfWaitTimeInDeviceMethod { get; set; }
         public int NumOfInvocationLoop { get ; set; }
 
         public int MSecOfInvocationInterval { get; set; }
-        public int SizeOfResponseData { get;set; }
+        public int SizeOfResponseData { get; set; }
+        public int ResponseTimeout { get; set; }
+
+        public string ModuleId { get; set;}
     }
 
     public class DeviceTwinDesiredProperty

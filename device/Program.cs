@@ -34,7 +34,8 @@ namespace egeorge.iot.devicemethod
 
                 try
                 {
-                    p.DeviceMethodInvocationReceiving().Wait();
+                    var task = p.DeviceMethodInvocationReceiving();
+                    task.Wait();
                 }
                 catch (Exception ex)
                 {
@@ -77,8 +78,9 @@ namespace egeorge.iot.devicemethod
             await devSim.SetDeviceMethods();
             await devSim.SetDeviceTwins();
             
-            Console.WriteLine("To stop this aps, Waiting for input any key...");
-            var rk = Console.ReadKey();
+//            Console.WriteLine("To stop this aps, Waiting for input any key...");
+  //          var rk = Console.ReadKey();
+            await Task.Delay(-1);
 
             await devSim.Disconnect();
         }

@@ -7,7 +7,11 @@ method-invocation-spec:
     - test-device-method-1
   # 'device-type' specify test devices by marked in reported property
   # device-type: method-invocation-test-device
-  device-method-name: TestMethod
+  method-name: TestMethod
+  method-type: device
+  # method-type: [device|module] 
+  # module-id: TestMethodModule
   data-size-of-payload: 1000
   sleep-msec-in-method: 1000
   data-size-of-response: 1000
+  response-timeout: 30000
