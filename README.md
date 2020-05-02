@@ -100,8 +100,6 @@ VS Code で、[service フォルダー](./service) を開く。
     - method-invocation-test-device
 - method-name  
 　Direct Method の名前。 ※任意
-- method-type  
-　Direct Method の種別を指定。Device SDKを利用したデバイスエミュレータの場合は、"<b>device</b>"  を、Azure IoT Edge の Module を利用する場合は、"<b>module</b>" を指定する
 - module-id  
 　Module の Direct Method をテストする場合に指定する。規定値は、"<b>TestMethodModule</b>"
 - data-size-of-payload  
@@ -150,8 +148,26 @@ Mean:120.81690000000002,Median:99.83349999999996,PSD:57.8306345364635
 ---
 
 ### edge  
-Under Construction
+Azure IoT Edge のモジュールの Direct Method のパフォーマンス計測用サンプル。  
+Azure IoT Edge 実行環境、開発環境のセットアップは、[こちら](https://docs.microsoft.com/ja-jp/azure/iot-edge/)のドキュメントを参考のこと。  
+Windows 上で実行する場合には、Azure IoT Edge 用の Extension をインストールした VS Code で [edge/ModuleMethodTestSolution](./edge/ModuleMethodTestSolution)を開き、Image の Build、Push、Deploy を行う。その際、[.env ファイル](./edge/ModuleMethodTestSolution/.env)を開き、各自のAzure Container Registry のアドレス、ユーザー名、パスワ―ドの設定が必要である。  
+Raspberry Pi 上で実行する場合に、Azure IoT Edge Extension の Build で失敗する場合には、[edge/ModuleMethodTestSolution/modules/TestMethodModule](./edge/ModuleMethodTestSolutionmodules/TestMethodModule) を Raspberry Pi 上にコピーし、Shell 上で以下のコマンドを実行し、Build ＆ Push を行う。 
+```shell
+sudo docker build -t testmethodmodule -f Dockerfile.arm32v7 .
+sudo docker tag testmethodmodule:latest your-container-registry/testmethodmodule:0.0.1-arm32v7
+sudo docker login
+sudo docker push your-container-registry/testmethodmodule:0.0.1-arm32v7
+```
+<b><i>your-container-registry</i></b> は、各自が作った Azure Container Registry のアドレスです。 [.env ファイル](./edge/ModuleMethodTestSolution/.env)と同じアドレスを使います。
+Buildとかめんどくさいという方は、Build 済みの Image を公開しているので、そちらを使ってください。Deploy 指定時の名前は、
+
+- [embeddedgeorge/testmethodmodule:0.0.1-arm32v7](https://hub.docker.com/repository/docker/embeddedgeorge/testmethodmodule)
 
 
+です。
+Module の Direct Method をテストする場合は、[service](./service) の実行で、 [config-module.yml] を使ってください。  
+※ [launch.json](./service/launch.json) の <b>.NET Core Launch (module)</b> を使って Debug 起動するとこちらの Yaml ファイルが選択されます。
+
+---
 ## Utility 
 Under Construction

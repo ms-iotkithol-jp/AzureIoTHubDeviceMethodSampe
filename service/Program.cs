@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Text;
 using Newtonsoft.Json.Linq;
 
-namespace egeorge.iot.devicemethod
+namespace egeorge.iot.directmethod
 {
     class Program
     {
@@ -78,7 +78,7 @@ namespace egeorge.iot.devicemethod
                 }
             }
 
-            var spec = new DeviceMethodInvocationSpec();
+            var spec = new DirectMethodInvocationSpec();
             var deviceids = ParseConfig(ref spec);
             if (deviceids == null)
             {
@@ -156,17 +156,17 @@ namespace egeorge.iot.devicemethod
             }
             cancellationTokenSource = new CancellationTokenSource();
             var tasks = new List<Task>();
-            var incovators = new List<DeviceMethodInvocator>();
+            var incovators = new List<DirectMethodInvocator>();
             foreach (var deviceId in deviceids)
             {
-                var invocator = new DeviceMethodInvocator(iotHubConnectionString, transportType);
+                var invocator = new DirectMethodInvocator(iotHubConnectionString, transportType);
                 if (log !=null)
                 {
                     invocator.Log = log;
                 }
                 await invocator.Connect();
                 var task = Task.Run( async ()=> {
-                     await invocator.TryDeviceMethodInvocation(deviceId, spec, cancellationTokenSource.Token);
+                     await invocator.TryDirectMethodInvocation(deviceId, spec, cancellationTokenSource.Token);
                 });
           //      task.Start();
                 tasks.Add(task);
@@ -187,7 +187,7 @@ namespace egeorge.iot.devicemethod
 
         JobClient jobClient;
 
-        async Task<string> StartDesiredTwinsJob(string query, DeviceMethodInvocationSpec spec)
+        async Task<string> StartDesiredTwinsJob(string query, DirectMethodInvocationSpec spec)
         {
             string jobId = Guid.NewGuid().ToString();
             jobClient = JobClient.CreateFromConnectionString(iotHubConnectionString);
@@ -209,11 +209,11 @@ namespace egeorge.iot.devicemethod
             return jobId;
         }
 
-        private string CreateTestMethodSpecDesiredPropertyJson(DeviceMethodInvocationSpec spec)
+        private string CreateTestMethodSpecDesiredPropertyJson(DirectMethodInvocationSpec spec)
         {
             var desiredTwinJson = new DeviceTwinDesiredProperty()
             {
-                SleepTime = spec.MSecOfWaitTimeInDeviceMethod,
+                SleepTime = spec.MSecOfWaitTimeInDirectMethod,
                 ReponseDataLength = spec.SizeOfResponseData
             };
             var json = "{\"direct-method-test\":" + Newtonsoft.Json.JsonConvert.SerializeObject(desiredTwinJson) + "}";
@@ -232,7 +232,7 @@ namespace egeorge.iot.devicemethod
             (result.Status != JobStatus.Failed));
         }
 
-        List<string> ParseConfig(ref DeviceMethodInvocationSpec spec)
+        List<string> ParseConfig(ref DirectMethodInvocationSpec spec)
         {
             var devices = new List<string>();
             using (var reader = new StreamReader(File.OpenRead(configFileName)))
@@ -258,7 +258,7 @@ namespace egeorge.iot.devicemethod
                 string iiv = invokeConfig["invocation-interval"].Value;
                 spec.MSecOfInvocationInterval = int.Parse(iiv);
                 iiv = invokeConfig["sleep-msec-in-method"].Value;
-                spec.MSecOfWaitTimeInDeviceMethod = int.Parse(iiv);
+                spec.MSecOfWaitTimeInDirectMethod = int.Parse(iiv);
                 iiv = invokeConfig["test-loop-count"].Value;
                 spec.NumOfInvocationLoop = int.Parse(iiv);
                 iiv = invokeConfig["data-size-of-payload"].Value;

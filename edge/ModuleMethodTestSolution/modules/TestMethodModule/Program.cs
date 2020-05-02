@@ -81,16 +81,18 @@ namespace TestMethodModule
         static void UpdateDesiredTwinPropery(string json)
         {
             dynamic twinPropsJson = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
-            var deviceMethodTestProps = twinPropsJson["direct-method-test"] as Newtonsoft.Json.Linq.JObject;
-            if (!(deviceMethodTestProps is null))
+            var directMethodTestProps = twinPropsJson["direct-method-test"] as Newtonsoft.Json.Linq.JObject;
+            if (!(directMethodTestProps is null))
             {
-                SleepTimeInMethod = (int)deviceMethodTestProps.GetValue("sleep-time");
-                ResponseDataLength = (int)deviceMethodTestProps.GetValue("response-data-length");
+                SleepTimeInMethod = (int)directMethodTestProps.GetValue("sleep-time");
+                ResponseDataLength = (int)directMethodTestProps.GetValue("response-data-length");
+                Console.WriteLine("Module Twin updated by {0}",json);
             }
         }
 
         static async Task DesiredPropertyUpdateHandler(TwinCollection desiredProperties, object userContext)
         {
+            Console.WriteLine("Update Desired Property request.");
             await Task.Run(()=>{
                 UpdateDesiredTwinPropery(desiredProperties.ToJson());
             });
@@ -99,11 +101,12 @@ namespace TestMethodModule
 
         static async Task SetupMethodCallback(ModuleClient ioTHubModuleClient)
         {
-            await ioTHubModuleClient.SetMethodDefaultHandlerAsync(DeviceMethodCallback, ioTHubModuleClient);
+            await ioTHubModuleClient.SetMethodDefaultHandlerAsync(DirectMethodCallback, ioTHubModuleClient);
         }
 
-        static async Task<MethodResponse> DeviceMethodCallback(MethodRequest methodRequest, object userContext)
+        static async Task<MethodResponse> DirectMethodCallback(MethodRequest methodRequest, object userContext)
         {
+            Console.WriteLine("DirectMethod is invoked!");
             var numChars = new char[] {'0','1','2','3','4','5','6','7','8','9'};
             var startTime = DateTime.Now;
             var methodName = methodRequest.Name;

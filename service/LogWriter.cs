@@ -1,6 +1,6 @@
 using System;
 
-namespace egeorge.iot.devicemethod
+namespace egeorge.iot.directmethod
 {
     public interface LogWriter
     {

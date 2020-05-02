@@ -3,14 +3,14 @@ using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Azure.Devices.Client;
 using System.Threading.Tasks;
 
-namespace egeorge.iot.devicemethod
+namespace egeorge.iot.directmethod
 {
     class Program
     {
         static void Main(string[] args)
         {
             var app = new CommandLineApplication(throwOnUnexpectedArg: false);
-            app.Name = "devicemethodsimulator";
+            app.Name = "directmethodsimulator";
             app.HelpOption("-h|--help");
 
             var csOption = app.Option(
@@ -34,7 +34,7 @@ namespace egeorge.iot.devicemethod
 
                 try
                 {
-                    var task = p.DeviceMethodInvocationReceiving();
+                    var task = p.DirectMethodInvocationReceiving();
                     task.Wait();
                 }
                 catch (Exception ex)
@@ -52,7 +52,7 @@ namespace egeorge.iot.devicemethod
         string iotHubConnectionString { get; set; }
         string iotHubTransportType { get; set; }
 
-        async Task DeviceMethodInvocationReceiving()
+        async Task DirectMethodInvocationReceiving()
         {
             if (string.IsNullOrEmpty(iotHubConnectionString))
             {
@@ -73,9 +73,9 @@ namespace egeorge.iot.devicemethod
                 }
             }
 
-            var devSim = new DeviceMethodSimulator(iotHubConnectionString, tt);
+            var devSim = new DirectMethodSimulator(iotHubConnectionString, tt);
             await devSim.Connect();
-            await devSim.SetDeviceMethods();
+            await devSim.SetDirectMethods();
             await devSim.SetDeviceTwins();
             
 //            Console.WriteLine("To stop this aps, Waiting for input any key...");

@@ -6,13 +6,13 @@ using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Shared;
 using Newtonsoft.Json;
 
-namespace egeorge.iot.devicemethod
+namespace egeorge.iot.directmethod
 {
-    public class DeviceMethodSimulator
+    public class DirectMethodSimulator
     {
         DeviceClient iotHubClinet;
 
-        public DeviceMethodSimulator(string connectionString, TransportType transporttype= TransportType.Amqp)
+        public DirectMethodSimulator(string connectionString, TransportType transporttype= TransportType.Amqp)
         {
             iotHubClinet = DeviceClient.CreateFromConnectionString(connectionString, transporttype);
         }
@@ -36,9 +36,9 @@ namespace egeorge.iot.devicemethod
             Debug.WriteLine("IoT Hub connection closed.");
         }
 
-        public async Task SetDeviceMethods()
+        public async Task SetDirectMethods()
         {
-            await iotHubClinet.SetMethodDefaultHandlerAsync(DeviceMethodCallback, this);
+            await iotHubClinet.SetMethodDefaultHandlerAsync(DirectMethodCallback, this);
         }
 
         public async Task SetDeviceTwins()
@@ -65,18 +65,18 @@ namespace egeorge.iot.devicemethod
         void UpdateDesiredTwinPropery(string json)
         {
             dynamic twinPropsJson = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
-            var deviceMethodTestProps = twinPropsJson["direct-method-test"] as Newtonsoft.Json.Linq.JObject;
-            if (!(deviceMethodTestProps is null))
+            var directMethodTestProps = twinPropsJson["direct-method-test"] as Newtonsoft.Json.Linq.JObject;
+            if (!(directMethodTestProps is null))
             {
-                SleepTimeInMethod = (int)deviceMethodTestProps.GetValue("sleep-time");
-                ResponseDataLength = (int)deviceMethodTestProps.GetValue("response-data-length");
+                SleepTimeInMethod = (int)directMethodTestProps.GetValue("sleep-time");
+                ResponseDataLength = (int)directMethodTestProps.GetValue("response-data-length");
             }
         }
 
         private int? SleepTimeInMethod { get; set; }
         private int? ResponseDataLength { get; set; }
 
-        public async Task<MethodResponse> DeviceMethodCallback(MethodRequest methodRequest, object userContext)
+        public async Task<MethodResponse> DirectMethodCallback(MethodRequest methodRequest, object userContext)
         {
             var numChars = new char[] {'0','1','2','3','4','5','6','7','8','9'};
             var startTime = DateTime.Now;
