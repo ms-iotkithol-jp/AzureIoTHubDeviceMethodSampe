@@ -4,7 +4,7 @@
 #include "DevKitMQTTClient.h"
 #include "RGB_LED.h"
 
-#include "gateway-cert.h"
+//#include "gateway-cert.h"
 
 static bool hasWifi = false;
 static bool hasIoTHub = false;
@@ -17,7 +17,8 @@ void setup() {
     hasWifi = true;
     Screen.print(1, "Running...");
 
-    DevKitMQTTClient_SetOption("TrustedCerts", edgeCert);
+ //   DevKitMQTTClient_SetOption(OPTION_MINI_SOLUTION_NAME, "DevKit-GetStarted");
+ //   DevKitMQTTClient_SetOption("TrustedCerts", edgeCert);
     if (!DevKitMQTTClient_Init(true))
     {
       hasIoTHub = false;
