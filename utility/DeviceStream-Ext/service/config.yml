@@ -1,0 +1,3 @@
+service-connection-string:  < - service connection string of your IoT Hub - >
+# local-port:  2222
+# target-device-id: jetson-nano-admin
